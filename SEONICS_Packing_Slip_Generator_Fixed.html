@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SEONICS Packing Slip Generator</title>
+  <!-- Tailwind CSS for UI Controls -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+
+    * {
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, "Helvetica Neue", sans-serif;
+    }
+
+    body {
+      background-color: #f1f5f9;
+      margin: 0;
+      padding: 0;
+      color: #000;
+    }
+
+    /* Outer Wrapper for Application */
+    .app-container {
+      display: flex;
+      gap: 24px;
+      padding: 20px;
+      max-width: 1650px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 1200px) {
+      .app-container {
+        flex-direction: column;
+      }
+    }
+
+    /* Input Sidebar / Form styling */
+    .input-panel {
+      flex: 1;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      max-height: 94vh;
+      overflow-y: auto;
+    }
+
+    .form-section-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      background-color: #000000;
+      color: #ffffff;
+      padding: 6px 10px;
+      margin-top: 14px;
+      margin-bottom: 10px;
+      border-radius: 2px;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group {
+      margin-bottom: 8px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 2px;
+      text-transform: uppercase;
+    }
+
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 0.82rem;
+    }
+
+    .form-group input:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: #000;
+    }
+
+    /* Print Preview Panel */
+    .preview-panel {
+      flex: 1.25;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* EXACT A4 PORTRAIT SHEET CONTAINER */
+    .a4-page {
+      width: 210mm;
+      min-height: 297mm;
+      height: 297mm;
+      background: #ffffff;
+      border: 1.5px solid #000000;
+      border-radius: 12px;
+      padding: 10mm 12mm;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-sizing: border-box;
+    }
+
+    /* 1. TOP HEADER SPLIT */
+    .header-box {
+      border: 1.5px solid #000000;
+      display: flex;
+      align-items: stretch;
+      margin-bottom: 8px;
+      min-height: 80px;
+    }
+
+    .header-left {
+      flex: 1.25;
+      padding: 12px 16px;
+      border-right: 1.5px solid #000000;
+      display: flex;
+      align-items: center;
+    }
+
+    .header-left-title {
+      font-size: 2.7rem;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      line-height: 1;
+      font-family: Arial, "Helvetica Neue", sans-serif;
+      text-transform: uppercase;
+    }
+
+    .header-right {
+      flex: 1;
+      padding: 10px 14px;
+      font-size: 0.8rem;
+      line-height: 1.28;
+      color: #000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .header-right-company {
+      white-space: pre-line;
+      overflow-wrap: anywhere;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+
+    /* SOLID BLACK SECTION BARS */
+    .black-section-bar {
+      background-color: #000000;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 0.82rem;
+      padding: 4px 10px;
+      margin-top: 6px;
+      letter-spacing: 0.2px;
+    }
+
+    /* GRID TABLES (Order Details & Shipped To) */
+    .grid-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 6px;
+    }
+
+    .grid-table td {
+      border: 1.5px solid #000000;
+      padding: 4px 8px;
+      font-size: 0.81rem;
+      color: #000000;
+    }
+
+    .label-cell {
+      font-weight: 700;
+      width: 22%;
+      background-color: #ffffff;
+    }
+
+    .value-cell {
+      background-color: #ffffff;
+      width: 28%;
+    }
+
+    .shipped-to-label {
+      font-weight: 700;
+      width: 22%;
+      background-color: #ffffff;
+    }
+
+    /* SHIPPING LINE HEADER TABLE */
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+      margin-bottom: 6px;
+    }
+
+    .summary-table th {
+      background-color: #000000;
+      color: #ffffff;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 5px 8px;
+      text-align: center;
+      border: 1.5px solid #000000;
+    }
+
+    .summary-table td {
+      border: 1.5px solid #000000;
+      padding: 6px 8px;
+      font-size: 0.81rem;
+      text-align: center;
+      background-color: #ffffff;
+    }
+
+    /* ITEMS TABLE GRID WITH DYNAMIC STRETCH */
+    .items-container {
+      flex-grow: 1;
+      margin-top: 2px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      flex-grow: 1;
+    }
+
+    .items-table th {
+      background-color: #000000;
+      color: #ffffff;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 6px 6px;
+      border: 1.5px solid #000000;
+    }
+
+    .items-table td {
+      border-left: 1.5px solid #000000;
+      border-right: 1.5px solid #000000;
+      border-top: 1.5px solid #000000;
+      border-bottom: 1.5px solid #000000;
+      padding: 6px 8px;
+      font-size: 0.81rem;
+      vertical-align: top;
+    }
+
+    /* FOOTER AREA */
+    .footer-section {
+      margin-top: auto;
+      padding-top: 8px;
+    }
+
+    .footer-grid {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      min-height: 55px;
+      margin-bottom: 12px;
+    }
+
+    .comments-box {
+      width: 65%;
+      font-size: 0.78rem;
+      line-height: 1.3;
+    }
+
+    .comments-label {
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .packed-by-box {
+      width: 30%;
+      text-align: right;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding-bottom: 2px;
+    }
+
+    .thank-you-banner {
+      text-align: center;
+      font-size: 1.15rem;
+      font-weight: 900;
+      margin-top: 8px;
+      margin-bottom: 2px;
+      letter-spacing: 0.2px;
+    }
+
+    /* PRINT STYLING - STRICT A4 FIT */
+    @media print {
+      body {
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      .input-panel, .action-buttons, .no-print {
+        display: none !important;
+      }
+
+      .app-container {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+      }
+
+      .preview-panel {
+        width: 100% !important;
+        display: block !important;
+      }
+
+      .a4-page {
+        border: 1.5px solid #000000 !important;
+        box-shadow: none !important;
+        width: 210mm !important;
+        height: 296mm !important;
+        margin: 0 auto !important;
+        padding: 10mm 12mm !important;
+        border-radius: 12px !important;
+        page-break-after: avoid;
+        page-break-inside: avoid;
+      }
+
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- LEFT SIDE: CONTROLS & FORM PANEL -->
+  <div class="input-panel no-print">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-base font-bold text-gray-900 uppercase tracking-wide">Packing Slip Controls</h2>
+      <span class="text-xs bg-black text-white px-2 py-0.5 rounded font-mono">A4 Replica</span>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="grid grid-cols-2 gap-2 mb-4 action-buttons">
+      <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-3 rounded shadow flex items-center justify-center gap-1.5 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+        🖨️ Print / Save PDF
+      </button>
+
+      <button onclick="pushToGoogleSheet()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-3 rounded shadow flex items-center justify-center gap-1.5 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+        Sync to Sheet
+      </button>
+
+      <button onclick="sendMail()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold py-2.5 px-3 rounded shadow flex items-center justify-center gap-1.5 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+        ✉️ Send Email
+      </button>
+
+      <button onclick="sendWhatsApp()" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2.5 px-3 rounded shadow flex items-center justify-center gap-1.5 transition">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+        💬 WhatsApp
+      </button>
+    </div>
+
+    <!-- GOOGLE SHEETS CONNECTOR CONFIG -->
+    <div class="bg-slate-50 p-3 rounded border border-slate-200 mb-3">
+      <div class="flex justify-between items-center mb-1">
+        <label class="text-xs font-bold text-gray-800 uppercase">Google Apps Script Web App Endpoint</label>
+        <button type="button" onclick="openScriptGuide()" class="text-xs text-blue-600 underline font-semibold">View Script Code</button>
+      </div>
+      <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full text-xs p-1.5 border rounded mb-2 font-mono">
+      
+      <div class="flex gap-2">
+        <input type="text" id="fetchQuery" placeholder="Enter Order # or Invoice #" class="flex-1 text-xs p-1.5 border rounded">
+        <button type="button" onclick="fetchFromGoogleSheet()" class="bg-gray-800 hover:bg-black text-white text-xs font-bold px-3 py-1.5 rounded">
+          Fetch Data
+        </button>
+      </div>
+    </div>
+
+    <form id="slipForm" onsubmit="return false;">
+      
+      <!-- Company Header Address -->
+      <div class="form-section-title">Company Address Text</div>
+      <div class="form-group">
+        <textarea id="in-company" rows="4" oninput="updatePreview()">Southern Electronics Pvt Ltd
+16-A, Phase -1, Peenya,
+Bengaluru,
+Karnataka 560022</textarea>
+      </div>
+
+      <!-- Order Details -->
+      <div class="form-section-title">Order Details</div>
+      <div class="grid grid-cols-2 gap-2">
+        <div class="form-group">
+          <label>Order #:</label>
+          <input type="text" id="in-orderNo" value="ORD-2026-1042" oninput="updatePreview()">
+        </div>
+        <div class="form-group">
+          <label>Date:</label>
+          <input type="text" id="in-date" value="16-Oct-2026" oninput="updatePreview()">
+        </div>
+        <div class="form-group">
+          <label>Date Ordered:</label>
+          <input type="text" id="in-dateOrdered" value="05-Oct-2026" oninput="updatePreview()">
+        </div>
+        <div class="form-group">
+          <label>Date Shipped:</label>
+          <input type="text" id="in-dateShipped" value="16-Oct-2026" oninput="updatePreview()">
+        </div>
+        <div class="form-group">
+          <label>Customer PO #:</label>
+          <input type="text" id="in-poNo" value="PO-INT-88421" oninput="updatePreview()">
+        </div>
+        <div class="form-group">
+          <label>Shipment Method:</label>
+          <input type="text" id="in-shipMethod" value="Air Freight / Express Cargo" oninput="updatePreview()">
+        </div>
+      </div>
+
+      <!-- Shipped To Section -->
+      <div class="form-section-title">Shipped To</div>
+      <div class="form-group">
+        <label>Name:</label>
+        <input type="text" id="in-shipName" value="Apex Aerospace Systems Inc." oninput="updatePreview()">
+      </div>
+      <div class="form-group">
+        <label>Address:</label>
+        <input type="text" id="in-shipAddress" value="452 Industrial Parkway, Suite 100" oninput="updatePreview()">
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div class="form-group">
+          <label>City, State, Zip:</label>
+          <input type="text" id="in-shipCity" value="Frankfurt, HE 60311, Germany" oninput="updatePreview()">
+        </div>
+        <div class="form-group">
+          <label>Phone No:</label>
+          <input type="text" id="in-shipPhone" value="+49 69 1234 5678" oninput="updatePreview()">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email Address:</label>
+        <input type="text" id="in-shipEmail" value="logistics@apexaero.com" oninput="updatePreview()">
+      </div>
+
+      <!-- Shipping & Invoice Summary -->
+      <div class="form-section-title">Shipping Line Details</div>
+      <div class="grid grid-cols-3 gap-2">
+        <div class="form-group">
+          <label>Shipped Via:</label>
+          <input type="text" id="in-shippedVia" value="DHL Aviation / Container Freight" oninput="updatePreview()">
+        </div>
+        <div class="form-group">
+          <label>Container Number:</label>
+          <input type="text" id="in-containerNo" value="MSKU-749201-9" oninput="updatePreview()">
+        </div>
+        <div class="form-group">
+          <label>Our Invoice Number:</label>
+          <input type="text" id="in-invoiceNo" value="SE/EXP/2026/089" oninput="updatePreview()">
+        </div>
+      </div>
+
+      <!-- Item Rows Management -->
+      <div class="flex justify-between items-center form-section-title">
+        <span>Item Grid Rows</span>
+        <button type="button" onclick="addItemRow()" class="bg-white text-black hover:bg-gray-200 text-xs px-2 py-0.5 rounded font-bold">+ Add Row</button>
+      </div>
+
+      <div id="itemInputsContainer">
+        <!-- Item inputs rendered dynamically -->
+      </div>
+
+      <!-- Comments & Footer -->
+      <div class="form-section-title">Comments & Sign-Off</div>
+      <div class="form-group">
+        <label>Comments:</label>
+        <textarea id="in-comments" rows="2" oninput="updatePreview()">Handle with care. Keep dry and store away from direct sunlight and moisture. Do not double-stack pallets.</textarea>
+      </div>
+      <div class="form-group">
+        <label>Packed by:</label>
+        <input type="text" id="in-packedBy" value="" placeholder="Name / Signature text" oninput="updatePreview()">
+      </div>
+
+    </form>
+  </div>
+
+  <!-- RIGHT SIDE: PIXEL PERFECT A4 PORTRAIT TEMPLATE PREVIEW -->
+  <div class="preview-panel">
+    <div class="a4-page" id="a4Page">
+      
+      <div>
+        <!-- 1. TOP HEADER SPLIT -->
+        <div class="header-box">
+          <div class="header-left">
+            <div class="header-left-title">PACKING SLIP</div>
+          </div>
+          <div class="header-right" id="pv-company">
+            <span class="header-right-company">Southern Electronics Pvt Ltd</span><br>
+            16-A, Phase -1, Peenya,<br>
+            Bengaluru,<br>
+            Karnataka 560022
+          </div>
+        </div>
+
+        <!-- 2. ORDER DETAILS HEADER BAR & GRID -->
+        <div class="black-section-bar">Order Details</div>
+        <table class="grid-table">
+          <tr>
+            <td class="label-cell">Order #:</td>
+            <td class="value-cell" id="pv-orderNo">ORD-2026-1042</td>
+            <td class="label-cell">Date:</td>
+            <td class="value-cell" id="pv-date">16-Oct-2026</td>
+          </tr>
+          <tr>
+            <td class="label-cell">Date Ordered:</td>
+            <td class="value-cell" id="pv-dateOrdered">05-Oct-2026</td>
+            <td class="label-cell">Date Shipped:</td>
+            <td class="value-cell" id="pv-dateShipped">16-Oct-2026</td>
+          </tr>
+          <tr>
+            <td class="label-cell">Customer PO #:</td>
+            <td class="value-cell" id="pv-poNo">PO-INT-88421</td>
+            <td class="label-cell">Shipment Method:</td>
+            <td class="value-cell" id="pv-shipMethod">Air Freight / Express Cargo</td>
+          </tr>
+        </table>
+
+        <!-- 3. SHIPPED TO HEADER BAR & GRID -->
+        <div class="black-section-bar">Shipped To</div>
+        <table class="grid-table">
+          <tr>
+            <td class="shipped-to-label">Name:</td>
+            <td id="pv-shipName">Apex Aerospace Systems Inc.</td>
+          </tr>
+          <tr>
+            <td class="shipped-to-label">Address:</td>
+            <td id="pv-shipAddress">452 Industrial Parkway, Suite 100</td>
+          </tr>
+          <tr>
+            <td class="shipped-to-label">City, State, Zip:</td>
+            <td id="pv-shipCity">Frankfurt, HE 60311, Germany</td>
+          </tr>
+          <tr>
+            <td class="shipped-to-label">Phone No:</td>
+            <td id="pv-shipPhone">+49 69 1234 5678</td>
+          </tr>
+          <tr>
+            <td class="shipped-to-label">Email Address:</td>
+            <td id="pv-shipEmail">logistics@apexaero.com</td>
+          </tr>
+        </table>
+
+        <!-- 4. SHIPPING LINE SUMMARY HEADER & ROW -->
+        <table class="summary-table">
+          <thead>
+            <tr>
+              <th width="33%">Shipped Via</th>
+              <th width="33%">Container Number</th>
+              <th width="34%">Our Invoice Number</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td id="pv-shippedVia">DHL Aviation / Container Freight</td>
+              <td id="pv-containerNo">MSKU-749201-9</td>
+              <td id="pv-invoiceNo">SE/EXP/2026/089</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- 5. ITEM TABLE GRID -->
+        <div class="items-container">
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th width="6%" style="text-align: center;">No</th>
+                <th width="48%" style="text-align: left;">Description</th>
+                <th width="10%" style="text-align: center;">Qty</th>
+                <th width="20%" style="text-align: center;">Pallet Size<br>LxWxH</th>
+                <th width="16%" style="text-align: right;">Gross<br>Weight</th>
+              </tr>
+            </thead>
+            <tbody id="pv-itemsBody">
+              <!-- Rendered Dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 6. FOOTER AREA -->
+      <div class="footer-section">
+        <div class="footer-grid">
+          <div class="comments-box">
+            <div class="comments-label">Comments:</div>
+            <div id="pv-comments">Handle with care. Keep dry and store away from direct sunlight and moisture. Do not double-stack pallets.</div>
+          </div>
+          <div class="packed-by-box">
+            <span>Packed by:</span> <span id="pv-packedBy"></span>
+          </div>
+        </div>
+
+        <div class="thank-you-banner">
+          Thank you for your purchase!!
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- APPS SCRIPT CODE MODAL -->
+<div id="scriptModal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center p-4 no-print z-50">
+  <div class="bg-white rounded-lg p-6 max-w-2xl w-full shadow-2xl max-h-90vh overflow-y-auto">
+    <h3 class="text-base font-bold text-gray-900 mb-1">Google Apps Script Setup (Code.gs)</h3>
+    <p class="text-xs text-gray-600 mb-3">Create a Google Sheet, open <b>Extensions &gt; Apps Script</b>, paste this code, save, then deploy as a <b>Web app</b>. Use the access option approved by your organisation; avoid public access for confidential shipment data.</p>
+    
+    <textarea id="appScriptCode" rows="14" class="w-full text-xs font-mono bg-slate-900 text-green-400 p-3 rounded mb-4" readonly>
+function getSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Packing Slip Records') || ss.insertSheet('Packing Slip Records');
+  var headers = ['Timestamp','Order No','Slip Date','Date Ordered','Date Shipped','Customer PO','Shipping Method','Company','Ship To Name','Ship To Address','Ship To City/Country','Ship To Phone','Ship To Email','Shipped Via','Container / Pallet ID','Invoice No','Items Summary','Comments','Packed By','Raw JSON'];
+  if (sheet.getLastRow() === 0) sheet.appendRow(headers);
+  return sheet;
+}
+function doPost(e) {
+  try {
+    var sheet = getSheet_();
+    var data = JSON.parse((e && e.parameter && e.parameter.payload) || (e && e.postData && e.postData.contents) || '{}');
+    var items = Array.isArray(data.items) ? data.items : [];
+    var itemsSummary = items.map(function(i) { return (i.desc || '') + ' (Qty: ' + (i.qty || '') + ', Pallet: ' + (i.pallet || '') + ', Wt: ' + (i.weight || '') + ')'; }).join(' | ');
+    sheet.appendRow([new Date(), data.orderNo || '', data.date || '', data.dateOrdered || '', data.dateShipped || '', data.poNo || '', data.shipMethod || '', data.company || '', (data.shippedTo || {}).name || '', (data.shippedTo || {}).address || '', (data.shippedTo || {}).city || '', (data.shippedTo || {}).phone || '', (data.shippedTo || {}).email || '', data.shippedVia || '', data.containerNo || '', data.invoiceNo || '', itemsSummary, data.comments || '', data.packedBy || '', JSON.stringify(data)]);
+    return ContentService.createTextOutput(JSON.stringify({status:'success'})).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({status:'error', message:String(err)})).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+function doGet(e) {
+  try {
+    var sheet = getSheet_();
+    var query = String((e && e.parameter && e.parameter.q) || '').trim().toLowerCase();
+    if (!query) return ContentService.createTextOutput(JSON.stringify({status:'error', message:'Enter an order or invoice number.'})).setMimeType(ContentService.MimeType.JSON);
+    var rows = sheet.getDataRange().getValues();
+    for (var i = rows.length - 1; i >= 1; i--) {
+      var rawJson = rows[i][19];
+      if (String(rows[i][1] || '').toLowerCase() === query || String(rows[i][15] || '').toLowerCase() === query) {
+        return ContentService.createTextOutput(JSON.stringify({status:'success', data:JSON.parse(rawJson)})).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify({status:'not_found'})).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({status:'error', message:String(err)})).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+</textarea>
+
+    <div class="flex justify-end gap-2">
+      <button onclick="copyScriptCode()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded">Copy Script</button>
+      <button onclick="closeScriptGuide()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 text-xs font-bold py-2 px-4 rounded">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Initial default items matching the image exactly
+  let itemsData = [
+    { desc: "Mini Fire Extinguisher Unit (KELVIN - Black)", qty: 100, pallet: "120×80×110 cm", weight: "202.0 kg" },
+    { desc: "Mini Fire Extinguisher Unit (KELVIN - Black)", qty: 100, pallet: "120×80×110 cm", weight: "202.0 kg" },
+    { desc: "Mini Fire Extinguisher Unit (KELVIN - Black)", qty: 100, pallet: "120×80×110 cm", weight: "202.0 kg" },
+    { desc: "Mini Fire Extinguisher Unit (KELVIN - Black)", qty: 100, pallet: "120×80×110 cm", weight: "202.0 kg" },
+    { desc: "Mini Fire Extinguisher Unit (KELVIN - Black)", qty: 100, pallet: "120×80×110 cm", weight: "202.0 kg" }
+  ];
+
+  function renderItemInputs() {
+    const container = document.getElementById('itemInputsContainer');
+    container.innerHTML = '';
+
+    itemsData.forEach((item, idx) => {
+      const rowDiv = document.createElement('div');
+      rowDiv.className = 'bg-gray-50 p-2 border border-gray-200 rounded mb-2 text-xs';
+      rowDiv.innerHTML = `
+        <div class="flex justify-between items-center mb-1">
+          <span class="font-bold text-gray-700">Row #${idx + 1}</span>
+          ${itemsData.length > 1 ? `<button type="button" onclick="removeItemRow(${idx})" class="text-red-600 font-bold hover:underline">Remove</button>` : ''}
+        </div>
+        <div class="form-group">
+          <input type="text" value="${escapeHtml(item.desc)}" placeholder="Description" oninput="updateItemData(${idx}, 'desc', this.value)">
+        </div>
+        <div class="grid grid-cols-3 gap-1">
+          <div>
+            <label>Qty</label>
+            <input type="number" value="${item.qty}" oninput="updateItemData(${idx}, 'qty', this.value)">
+          </div>
+          <div>
+            <label>Pallet Size</label>
+            <input type="text" value="${escapeHtml(item.pallet)}" oninput="updateItemData(${idx}, 'pallet', this.value)">
+          </div>
+          <div>
+            <label>Gross Wt</label>
+            <input type="text" value="${escapeHtml(item.weight)}" oninput="updateItemData(${idx}, 'weight', this.value)">
+          </div>
+        </div>
+      `;
+      container.appendChild(rowDiv);
+    });
+  }
+
+  function addItemRow() {
+    itemsData.push({
+      desc: "Mini Fire Extinguisher Unit (KELVIN - Black)",
+      qty: 100,
+      pallet: "120×80×110 cm",
+      weight: "202.0 kg"
+    });
+    renderItemInputs();
+    updatePreview();
+  }
+
+  function removeItemRow(index) {
+    itemsData.splice(index, 1);
+    renderItemInputs();
+    updatePreview();
+  }
+
+  function updateItemData(index, field, value) {
+    itemsData[index][field] = value;
+    updatePreview();
+  }
+
+  function escapeHtml(text) {
+    return String(text == null ? '' : text).replace(/[&<>"']/g, function (ch) {
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch];
+    });
+  }
+
+  function updatePreview() {
+    // Company Header
+    const companyText = document.getElementById('in-company').value;
+    document.getElementById('pv-company').textContent = companyText;
+
+    // Order Details
+    document.getElementById('pv-orderNo').innerText = document.getElementById('in-orderNo').value;
+    document.getElementById('pv-date').innerText = document.getElementById('in-date').value;
+    document.getElementById('pv-dateOrdered').innerText = document.getElementById('in-dateOrdered').value;
+    document.getElementById('pv-dateShipped').innerText = document.getElementById('in-dateShipped').value;
+    document.getElementById('pv-poNo').innerText = document.getElementById('in-poNo').value;
+    document.getElementById('pv-shipMethod').innerText = document.getElementById('in-shipMethod').value;
+
+    // Shipped To
+    document.getElementById('pv-shipName').innerText = document.getElementById('in-shipName').value;
+    document.getElementById('pv-shipAddress').innerText = document.getElementById('in-shipAddress').value;
+    document.getElementById('pv-shipCity').innerText = document.getElementById('in-shipCity').value;
+    document.getElementById('pv-shipPhone').innerText = document.getElementById('in-shipPhone').value;
+    document.getElementById('pv-shipEmail').innerText = document.getElementById('in-shipEmail').value;
+
+    // Summary
+    document.getElementById('pv-shippedVia').innerText = document.getElementById('in-shippedVia').value;
+    document.getElementById('pv-containerNo').innerText = document.getElementById('in-containerNo').value;
+    document.getElementById('pv-invoiceNo').innerText = document.getElementById('in-invoiceNo').value;
+
+    // Items Table
+    const itemsTbody = document.getElementById('pv-itemsBody');
+    itemsTbody.innerHTML = '';
+
+    itemsData.forEach((item, index) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="text-align: center; border-left: 1.5px solid #000; border-right: 1.5px solid #000; border-top: 1.5px solid #000; border-bottom: 1.5px solid #000;">${index + 1}</td>
+        <td style="border-left: 1.5px solid #000; border-right: 1.5px solid #000; border-top: 1.5px solid #000; border-bottom: 1.5px solid #000;">${escapeHtml(item.desc)}</td>
+        <td style="text-align: center; border-left: 1.5px solid #000; border-right: 1.5px solid #000; border-top: 1.5px solid #000; border-bottom: 1.5px solid #000;">${escapeHtml(item.qty)}</td>
+        <td style="text-align: center; border-left: 1.5px solid #000; border-right: 1.5px solid #000; border-top: 1.5px solid #000; border-bottom: 1.5px solid #000;">${escapeHtml(item.pallet)}</td>
+        <td style="text-align: right; border-left: 1.5px solid #000; border-right: 1.5px solid #000; border-top: 1.5px solid #000; border-bottom: 1.5px solid #000;">${escapeHtml(item.weight)}</td>
+      `;
+      itemsTbody.appendChild(tr);
+    });
+
+    // Comments & Packed By
+    document.getElementById('pv-comments').innerText = document.getElementById('in-comments').value;
+    document.getElementById('pv-packedBy').innerText = document.getElementById('in-packedBy').value;
+  }
+
+  // Action: Mail
+  function sendMail() {
+    const orderNo = document.getElementById('in-orderNo').value;
+    const shipName = document.getElementById('in-shipName').value;
+    const email = document.getElementById('in-shipEmail').value || "logistics@apexaero.com";
+
+    const subject = encodeURIComponent(`Packing Slip Details - ${orderNo} (${shipName})`);
+    const body = encodeURIComponent(
+      `Dear ${shipName},\n\nPlease find your Packing Slip details below:\n\n` +
+      `Order #: ${orderNo}\n` +
+      `Customer PO #: ${document.getElementById('in-poNo').value}\n` +
+      `Our Invoice #: ${document.getElementById('in-invoiceNo').value}\n` +
+      `Shipped Via: ${document.getElementById('in-shippedVia').value}\n\n` +
+      `Thank you for your business!!\nSouthern Electronics Pvt Ltd`
+    );
+
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+  }
+
+  // Action: WhatsApp
+  function sendWhatsApp() {
+    const orderNo = document.getElementById('in-orderNo').value;
+    const shipName = document.getElementById('in-shipName').value;
+
+    const message = encodeURIComponent(
+      `*PACKING SLIP SUMMARY*\n` +
+      `*Order #:* ${orderNo}\n` +
+      `*PO #:* ${document.getElementById('in-poNo').value}\n` +
+      `*Customer:* ${shipName}\n` +
+      `*Invoice #:* ${document.getElementById('in-invoiceNo').value}\n` +
+      `*Shipped Via:* ${document.getElementById('in-shippedVia').value}`
+    );
+
+    window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
+  }
+
+  // Google Sheets Push
+  function pushToGoogleSheet() {
+    const url = document.getElementById('scriptUrl').value.trim();
+    if (!url) {
+      alert("Please enter your Google Apps Script Web App Endpoint URL.");
+      return;
+    }
+
+    const payload = {
+      orderNo: document.getElementById('in-orderNo').value,
+      date: document.getElementById('in-date').value,
+      dateOrdered: document.getElementById('in-dateOrdered').value,
+      dateShipped: document.getElementById('in-dateShipped').value,
+      poNo: document.getElementById('in-poNo').value,
+      shipMethod: document.getElementById('in-shipMethod').value,
+      company: document.getElementById('in-company').value,
+      shippedTo: {
+        name: document.getElementById('in-shipName').value,
+        address: document.getElementById('in-shipAddress').value,
+        city: document.getElementById('in-shipCity').value,
+        phone: document.getElementById('in-shipPhone').value,
+        email: document.getElementById('in-shipEmail').value
+      },
+      shippedVia: document.getElementById('in-shippedVia').value,
+      containerNo: document.getElementById('in-containerNo').value,
+      invoiceNo: document.getElementById('in-invoiceNo').value,
+      items: itemsData,
+      comments: document.getElementById('in-comments').value,
+      packedBy: document.getElementById('in-packedBy').value
+    };
+
+    if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec(?:$|\?)/.test(url)) {
+      alert('Please paste the deployed Google Apps Script Web App URL ending in /exec.');
+      return;
+    }
+    fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: new URLSearchParams({ payload: JSON.stringify(payload) }).toString()
+    })
+    .then(() => alert('Save request sent. Because Google Apps Script does not return a readable confirmation in this mode, please open your Google Sheet and confirm that the new row appears before relying on this record.'))
+    .catch(err => alert('Could not send the save request: ' + err.message));
+  }
+
+  // Google Sheets Fetch
+  function fetchFromGoogleSheet() {
+    const url = document.getElementById('scriptUrl').value.trim();
+    const query = document.getElementById('fetchQuery').value.trim();
+
+    if (!url) {
+      alert("Please enter your Google Apps Script Web App Endpoint URL.");
+      return;
+    }
+    if (!query) {
+      alert("Please enter an Order # or Invoice # to search.");
+      return;
+    }
+
+    fetch(`${url}?q=${encodeURIComponent(query)}`)
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === "success" && res.data) {
+          const d = res.data;
+          if (d.company) document.getElementById('in-company').value = d.company;
+          if (d.orderNo) document.getElementById('in-orderNo').value = d.orderNo;
+          if (d.date) document.getElementById('in-date').value = d.date;
+          if (d.dateOrdered) document.getElementById('in-dateOrdered').value = d.dateOrdered;
+          if (d.dateShipped) document.getElementById('in-dateShipped').value = d.dateShipped;
+          if (d.poNo) document.getElementById('in-poNo').value = d.poNo;
+          if (d.shipMethod) document.getElementById('in-shipMethod').value = d.shipMethod;
+
+          if (d.shippedTo) {
+            document.getElementById('in-shipName').value = d.shippedTo.name || '';
+            document.getElementById('in-shipAddress').value = d.shippedTo.address || '';
+            document.getElementById('in-shipCity').value = d.shippedTo.city || '';
+            document.getElementById('in-shipPhone').value = d.shippedTo.phone || '';
+            document.getElementById('in-shipEmail').value = d.shippedTo.email || '';
+          }
+
+          if (d.shippedVia) document.getElementById('in-shippedVia').value = d.shippedVia;
+          if (d.containerNo) document.getElementById('in-containerNo').value = d.containerNo;
+          if (d.invoiceNo) document.getElementById('in-invoiceNo').value = d.invoiceNo;
+
+          if (d.items && Array.isArray(d.items)) {
+            itemsData = d.items;
+            renderItemInputs();
+          }
+
+          if (d.comments) document.getElementById('in-comments').value = d.comments;
+          if (d.packedBy) document.getElementById('in-packedBy').value = d.packedBy;
+
+          updatePreview();
+          alert("Packing Slip data successfully restored from Google Sheet!");
+        } else if (res.status === "not_found") {
+          alert("No matching record found in Google Sheet.");
+        } else {
+          alert("Unable to fetch data. Check your Web App script configuration.");
+        }
+      })
+      .catch(err => alert("Error fetching data: " + err));
+  }
+
+  // Apps Script Guide Modal Controls
+  function openScriptGuide() {
+    document.getElementById('scriptModal').classList.remove('hidden');
+  }
+
+  function closeScriptGuide() {
+    document.getElementById('scriptModal').classList.add('hidden');
+  }
+
+  function copyScriptCode() {
+    const code = document.getElementById('appScriptCode').value;
+    const textarea = document.createElement('textarea');
+    textarea.value = code;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    alert('Google Apps Script copied to clipboard!');
+  }
+
+  // Initialize UI
+  renderItemInputs();
+  updatePreview();
+</script>
+
+</body>
+</html>
